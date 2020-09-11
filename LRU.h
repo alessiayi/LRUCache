@@ -1,17 +1,11 @@
 #include <iostream>
 #include <iterator>
 #include <unordered_map>
+#include "node.h"
 
 using namespace std;
 
-template <class T>
-
-struct node{
-  int data;
-  char key;
-  node *next;
-  node *prev;
-};
+//template <typename T>
 
 unordered_map<char, node*> mapa;
 int contador;
@@ -36,10 +30,7 @@ public:
   }
 
   void update(node *curr){
-    if (curr==head){
-      cout << " ";
-    }
-    else if (curr==tail){
+    if (curr==tail){
       curr->next=head;
       head->prev=tail;
       tail=tail->prev;
@@ -47,14 +38,15 @@ public:
       tail->next=NULL;
       head=curr;
     }
-    else{
+    else if (curr!=head){
       //si esta en el medio
       node *temp=curr->prev;
-      temp->next=curr->next;
-      temp=temp->next;
-      temp->prev=curr->prev;
-      curr->next=head;
+      node *temp2=curr->next;
+      temp->next=temp2;
+      temp2->prev=temp;
       curr->prev=NULL;
+      curr->next=head;
+      head->prev=curr;
       head=curr;
     }
   }
@@ -89,6 +81,7 @@ public:
         node *temp1=tail->prev;
         temp1->next=NULL;
         tail->prev=NULL;
+        delete tail;
         tail=temp1;
       }
       mapa.insert(make_pair(c, temp));
@@ -101,7 +94,7 @@ public:
   }
 
   void getMostRecentKey(){
-    cout << head->key << "\n";
+    cout << head->key << endl;
   }
 
   void getValueFromKey(char c){
@@ -114,20 +107,38 @@ public:
       update(curr);
     }
   }
+
+  void deletekey(char c){
+    if (mapa.find(c)==mapa.end()){
+      cout << "-" << endl;
+    }
+    else{
+      node *tmp=mapa.find(c)->second;
+      mapa.erase(c);
+      if (tmp==head){
+        tmp = head->next;
+        delete head;
+        head->next = NULL;
+        tmp->prev = NULL;
+        head = tmp;
+      }
+      else if (tmp==tail){
+        tmp=tail->prev;
+        tail->prev=NULL;
+        delete tail;
+        tmp->next=NULL;
+        tail=tmp;
+      }
+      else{//si esta en el medio
+        node *curr=tmp->prev;
+        node *curr2=tmp->next;
+        tmp->next=NULL;
+        tmp->prev=NULL;
+        curr->next=curr2;
+        curr2->prev=curr;
+        delete tmp;
+      }
+      contador--;
+    }
+  }
 };
-
-int main() {
-  LRUCache cache=LRUCache(3);
-  cache.inserKeyValue('b', 2);
-  cache.inserKeyValue('a', 1);
-  cache.inserKeyValue('c', 3);
-  cache.getMostRecentKey(); // "c" was the most recently inserted key
-  cache.getValueFromKey('a');
-  cache.getMostRecentKey(); // "a" was the most recently retrieved key
-  cache.inserKeyValue('d', 4); // the cache had 3 entries; the least recently
-  cache.getValueFromKey('b'); // "b" was evicted in the previous operation
-  cache.inserKeyValue('a', 8); // "a" already exists in the cache so its valu
-  cache.getValueFromKey('a');
-
-  return 0;
-}
